@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Portfolio editor</title>
+<style>
+  :root{ --y:#fcde0e; --ink:#111; --line:#ddd; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--ink); background:#f6f4ef; }
+  header{ position:sticky; top:0; z-index:5; background:var(--y); padding:14px 20px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; border-bottom:2px solid var(--ink); }
+  header h1{ font-size:18px; margin:0 12px 0 0; }
+  button{ font:inherit; border:2px solid var(--ink); background:#fff; padding:6px 12px; border-radius:8px; cursor:pointer; }
+  button.primary{ background:var(--ink); color:#fff; }
+  button:disabled{ opacity:.4; cursor:default; }
+  main{ max-width:1100px; margin:0 auto; padding:20px; }
+  .help{ background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-bottom:18px; }
+  .help ol{ margin:6px 0 0; padding-left:20px; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:16px; display:grid; grid-template-columns:minmax(220px,380px) 1fr; gap:16px; }
+  .card.drawing{ outline:3px solid var(--y); }
+  .num{ font-weight:700; font-size:22px; }
+  .stage{ position:relative; user-select:none; touch-action:none; }
+  .stage img{ display:block; width:100%; height:auto; border:1px solid var(--line); }
+  .card.drawing .stage{ cursor:crosshair; }
+  .box{ position:absolute; border:2px solid #ff3b30; background:rgba(255,59,48,.18); color:#fff; font:700 12px system-ui; display:flex; align-items:flex-start; padding:2px 4px; text-shadow:0 0 3px #000; pointer-events:none; }
+  label{ display:block; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:#555; margin:8px 0 3px; }
+  input[type=text]{ width:100%; font:inherit; padding:7px 9px; border:1px solid #bbb; border-radius:6px; }
+  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+  .vid{ display:grid; grid-template-columns:24px 1fr auto; gap:6px; align-items:center; margin-top:6px; }
+  .vid b{ color:#ff3b30; }
+  .warn{ color:#b00020; font-size:13px; }
+  #out{ position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:10; padding:20px; }
+  #out.open{ display:flex; }
+  #out .panel{ background:#fff; border-radius:12px; max-width:860px; width:100%; padding:18px; }
+  #out textarea{ width:100%; height:48vh; font:12px/1.4 ui-monospace,Menlo,monospace; }
+  @media (max-width:720px){ .card{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Portfolio editor</h1>
+  <button id="add">+ Add a page</button>
+  <button class="primary" id="export">Get the new work.js</button>
+  <button id="reset" title="Throw away unsaved changes in this editor">Start over</button>
+</header>
+<main>
+  <div class="help">
+    <strong>How this works.</strong> Nothing here changes the live site by itself. Make your changes, press <b>Get the new work.js</b>, then paste it into work.js on GitHub.
+    <ol>
+      <li><b>Reorder</b>: use ↑ and ↓ on each page.</li>
+      <li><b>New page</b>: first upload the image into the <code>work</code> folder on GitHub, then press <b>+ Add a page</b> and type its name, e.g. <code>work/my-new-campaign.webp</code>.</li>
+      <li><b>Video</b>: press <b>+ Video area</b> on a page, drag a box over the thumbnail, then paste the YouTube, Google Drive, Instagram or Vimeo link.</li>
+      <li><b>Publish</b>: <b>Get the new work.js</b> → Copy → on GitHub open <code>work.js</code> → pencil icon → select all → paste → Commit changes. Live in about a minute.</li>
+    </ol>
+  </div>
+  <div id="list"></div>
+</main>
+<div id="out" role="dialog" aria-label="New work.js">
+  <div class="panel">
+    <p><b>Copy this, then on GitHub:</b> open <code>work.js</code> → pencil icon (Edit) → select everything (Cmd/Ctrl + A) → paste → <b>Commit changes</b>.</p>
+    <textarea id="code" readonly></textarea>
+    <div class="row"><button class="primary" id="copy">Copy</button><button id="close">Close</button><span id="copied"></span></div>
+  </div>
+</div>
+<script src="work.js"></script>
+<script>
+(function(){
+  const KEY='portfolio-editor-draft';
+  const original=JSON.parse(JSON.stringify(window.WORK||[]));
+  let W;
+  try{ W=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ W=null; }
+  if(!Array.isArray(W)) W=JSON.parse(JSON.stringify(original));
+  const list=document.getElementById('list');
+  let drawingIndex=-1;
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(W)); }catch(e){} };
+  const r2=v=>Math.round(v*100)/100;
+
+  function render(){
+    list.innerHTML='';
+    if(!window.WORK){ list.innerHTML='<p class="warn">work.js could not be read (it probably has a typo). Restore the last good version on GitHub (work.js → History).</p>'; }
+    W.forEach((p,i)=>{
+      p.videos=p.videos||[];
+      const c=document.createElement('div'); c.className='card'+(drawingIndex===i?' drawing':'');
+      const left=document.createElement('div');
+      const st=document.createElement('div'); st.className='stage';
+      const img=new Image(); img.src=p.image; img.alt='';
+      img.onload=()=>{ p.size=[img.naturalWidth,img.naturalHeight]; save(); };
+      img.onerror=()=>{ st.insertAdjacentHTML('beforeend','<p class="warn">Can’t find <code>'+p.image+'</code>. Upload it to the work folder, or fix the name.</p>'); };
+      st.appendChild(img);
+      p.videos.forEach((v,k)=>{ const b=document.createElement('div'); b.className='box'; const [l,t,w,h]=v.area;
+        Object.assign(b.style,{left:l+'%',top:t+'%',width:w+'%',height:h+'%'}); b.textContent=k+1; st.appendChild(b); });
+      left.appendChild(st);
+      // drawing
+      let start=null, ghost=null;
+      st.addEventListener('pointerdown',e=>{ if(drawingIndex!==i) return; const r=img.getBoundingClientRect();
+        start={x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100};
+        ghost=document.createElement('div'); ghost.className='box'; st.appendChild(ghost); st.setPointerCapture(e.pointerId); });
+      st.addEventListener('pointermove',e=>{ if(!start) return; const r=img.getBoundingClientRect();
+        const x=Math.min(100,Math.max(0,(e.clientX-r.left)/r.width*100)), y=Math.min(100,Math.max(0,(e.clientY-r.top)/r.height*100));
+        Object.assign(ghost.style,{left:Math.min(x,start.x)+'%',top:Math.min(y,start.y)+'%',width:Math.abs(x-start.x)+'%',height:Math.abs(y-start.y)+'%'});
+        ghost._a=[Math.min(x,start.x),Math.min(y,start.y),Math.abs(x-start.x),Math.abs(y-start.y)]; });
+      st.addEventListener('pointerup',()=>{ if(!start) return; const a=ghost&&ghost._a; start=null;
+        if(!a||a[2]<1||a[3]<1){ ghost&&ghost.remove(); return; }
+        const link=prompt('Paste the video link (YouTube, Google Drive, Instagram or Vimeo):');
+        if(link&&link.trim()){ const label=prompt('Short name for this video (optional):')||'';
+          p.videos.push({link:link.trim(),area:a.map(r2),label:label.trim()}); save(); }
+        drawingIndex=-1; render(); });
+      // right side
+      const right=document.createElement('div');
+      right.innerHTML='<div class="num">'+String(i+1).padStart(2,'0')+'</div>';
+      const t=field('Title (also read out by screen readers)',p.title||'',v=>{p.title=v;save();});
+      const im=field('Image file',p.image||'',v=>{p.image=v.trim();save();},true);
+      right.append(t,im);
+      const lab=document.createElement('label'); lab.textContent='Videos on this page'; right.appendChild(lab);
+      if(!p.videos.length) right.insertAdjacentHTML('beforeend','<div style="color:#777;font-size:13px">None</div>');
+      p.videos.forEach((v,k)=>{ const d=document.createElement('div'); d.className='vid';
+        const n=document.createElement('b'); n.textContent=k+1;
+        const inp=document.createElement('input'); inp.type='text'; inp.value=v.link; inp.onchange=()=>{v.link=inp.value.trim();save();};
+        const del=btn('Remove',()=>{ p.videos.splice(k,1); save(); render(); });
+        d.append(n,inp,del); right.appendChild(d); });
+      const row=document.createElement('div'); row.className='row';
+      row.append(
+        btn(drawingIndex===i?'Drag a box on the image…':'+ Video area',()=>{ drawingIndex=drawingIndex===i?-1:i; render(); }),
+        btn('↑ Move up',()=>{ if(i>0){ [W[i-1],W[i]]=[W[i],W[i-1]]; save(); render(); } },i===0),
+        btn('↓ Move down',()=>{ if(i<W.length-1){ [W[i+1],W[i]]=[W[i],W[i+1]]; save(); render(); } },i===W.length-1),
+        btn('Delete page',()=>{ if(confirm('Remove this page from the site? (The image file stays on GitHub.)')){ W.splice(i,1); save(); render(); } })
+      );
+      right.appendChild(row);
+      c.append(left,right); list.appendChild(c);
+    });
+  }
+  function field(name,val,on,onBlurRender){ const w=document.createElement('div'); const l=document.createElement('label'); l.textContent=name;
+    const i=document.createElement('input'); i.type='text'; i.value=val; i.oninput=()=>on(i.value); if(onBlurRender) i.onchange=()=>render(); w.append(l,i); return w; }
+  function btn(t,f,dis){ const b=document.createElement('button'); b.textContent=t; b.onclick=f; if(dis) b.disabled=true; return b; }
+
+  document.getElementById('add').onclick=()=>{
+    let f=prompt('Image file name in the work folder (upload it to GitHub first):','work/');
+    if(!f||f.trim()==='work/') return; f=f.trim(); if(!f.includes('/')) f='work/'+f;
+    const title=prompt('Title of this page (e.g. "Diwali campaign for Mudrex"):')||'';
+    const pos=parseInt(prompt('Position on the site (1 = first). Leave empty for the end:',''),10);
+    const p={title:title.trim(),image:f,videos:[]};
+    if(pos>=1&&pos<=W.length) W.splice(pos-1,0,p); else W.push(p);
+    save(); render(); };
+  document.getElementById('reset').onclick=()=>{ if(confirm('Throw away the changes made in this editor and reload work.js?')){ localStorage.removeItem(KEY); W=JSON.parse(JSON.stringify(original)); render(); } };
+  const out=document.getElementById('out'), code=document.getElementById('code');
+  document.getElementById('export').onclick=()=>{ code.value=toJS(W); out.classList.add('open'); code.focus(); code.select(); };
+  document.getElementById('close').onclick=()=>out.classList.remove('open');
+  document.getElementById('copy').onclick=async()=>{ code.select(); try{ await navigator.clipboard.writeText(code.value); }catch(e){ document.execCommand('copy'); }
+    document.getElementById('copied').textContent='Copied. Now paste it into work.js on GitHub.'; };
+
+  function q(s){ return JSON.stringify(s); }
+  function toJS(W){
+    let s='/* =====================================================================\n'+
+'   YOUR WORK  —  this one file controls every work page on the site.\n\n'+
+'   • ORDER: pages appear on the site in the same order as in this list.\n'+
+'     To move a page, cut its whole { ... }, block and paste it where you want.\n'+
+'   • ADD A PAGE: upload the image into the "work" folder first, then copy any\n'+
+'     block, paste it where it should appear, and change "image" and "title".\n'+
+'   • VIDEOS: easiest to add with editor.html (it draws the play area for you).\n'+
+'     "area" is [left, top, width, height] in % of the image.\n'+
+'   • Keep the commas: every { ... } block ends with  },\n'+
+'   • Broke something? On GitHub open this file → History → open the last\n'+
+'     good version → copy it back in.  (Or use editor.html.)\n'+
+'   ===================================================================== */\n\nwindow.WORK = [\n';
+    W.forEach(p=>{
+      s+='\n  // ------------------------------------------------------------\n  {\n';
+      s+='    title: '+q(p.title||'')+',\n    image: '+q(p.image)+',\n';
+      if(Array.isArray(p.size)) s+='    size: ['+p.size[0]+', '+p.size[1]+'],\n';
+      s+='    videos: [\n';
+      (p.videos||[]).forEach(v=>{ s+='      { link: '+q(v.link)+', area: ['+v.area.map(r2).join(', ')+'], label: '+q(v.label||'')+' },\n'; });
+      s+='    ],\n  },\n';
+    });
+    return s+'\n];\n';
+  }
+  render();
+})();
+</script>
+</body>
+</html>
