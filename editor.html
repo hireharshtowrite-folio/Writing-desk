@@ -49,7 +49,7 @@
     <strong>How this works.</strong> Nothing here changes the live site by itself. Make your changes, press <b>Get the new work.js</b>, then paste it into work.js on GitHub.
     <ol>
       <li><b>Reorder</b>: use ↑ and ↓ on each page.</li>
-      <li><b>New page</b>: first upload the image into the <code>work</code> folder on GitHub, then press <b>+ Add a page</b> and type its name, e.g. <code>work/my-new-campaign.webp</code>.</li>
+      <li><b>New page</b>: first upload the image to GitHub (Add file → Upload files), then press <b>+ Add a page</b> and type its exact name, e.g. <code>my-new-campaign.webp</code>.</li>
       <li><b>Video</b>: press <b>+ Video area</b> on a page, drag a box over the thumbnail, then paste the YouTube, Google Drive, Instagram or Vimeo link.</li>
       <li><b>Publish</b>: <b>Get the new work.js</b> → Copy → on GitHub open <code>work.js</code> → pencil icon → select all → paste → Commit changes. Live in about a minute.</li>
     </ol>
@@ -86,7 +86,7 @@
       const st=document.createElement('div'); st.className='stage';
       const img=new Image(); img.src=p.image; img.alt='';
       img.onload=()=>{ p.size=[img.naturalWidth,img.naturalHeight]; save(); };
-      img.onerror=()=>{ st.insertAdjacentHTML('beforeend','<p class="warn">Can’t find <code>'+p.image+'</code>. Upload it to the work folder, or fix the name.</p>'); };
+      img.onerror=()=>{ st.insertAdjacentHTML('beforeend','<p class="warn">Can’t find <code>'+p.image+'</code>. Upload it to GitHub, or fix the name.</p>'); };
       st.appendChild(img);
       p.videos.forEach((v,k)=>{ const b=document.createElement('div'); b.className='box'; const [l,t,w,h]=v.area;
         Object.assign(b.style,{left:l+'%',top:t+'%',width:w+'%',height:h+'%'}); b.textContent=k+1; st.appendChild(b); });
@@ -135,8 +135,8 @@
   function btn(t,f,dis){ const b=document.createElement('button'); b.textContent=t; b.onclick=f; if(dis) b.disabled=true; return b; }
 
   document.getElementById('add').onclick=()=>{
-    let f=prompt('Image file name in the work folder (upload it to GitHub first):','work/');
-    if(!f||f.trim()==='work/') return; f=f.trim(); if(!f.includes('/')) f='work/'+f;
+    let f=prompt('Exact name of the image you uploaded to GitHub, e.g. diwali-campaign.webp:','');
+    if(!f||!f.trim()) return; f=f.trim();
     const title=prompt('Title of this page (e.g. "Diwali campaign for Mudrex"):')||'';
     const pos=parseInt(prompt('Position on the site (1 = first). Leave empty for the end:',''),10);
     const p={title:title.trim(),image:f,videos:[]};
@@ -155,7 +155,7 @@
 '   YOUR WORK  —  this one file controls every work page on the site.\n\n'+
 '   • ORDER: pages appear on the site in the same order as in this list.\n'+
 '     To move a page, cut its whole { ... }, block and paste it where you want.\n'+
-'   • ADD A PAGE: upload the image into the "work" folder first, then copy any\n'+
+'   • ADD A PAGE: upload the image to GitHub first, then copy any\n'+
 '     block, paste it where it should appear, and change "image" and "title".\n'+
 '   • VIDEOS: easiest to add with editor.html (it draws the play area for you).\n'+
 '     "area" is [left, top, width, height] in % of the image.\n'+
