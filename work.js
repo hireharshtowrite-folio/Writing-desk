@@ -59,6 +59,7 @@ window.WORK = [
     image: "ThodaAur_Section_HQ.png",
     size: [3840, 6103],
     videos: [
+      { link: "https://drive.google.com/file/d/1UTwCtzG8Lq7PrubpZ46LXnlVBuxBGgTg/view?usp=drivesdk", area: [3.94, 22.16, 92.82, 32.36], label: "" },
     ],
   },
 
@@ -77,6 +78,11 @@ window.WORK = [
     image: "Soanpapdi_Section_HQ.png",
     size: [3840, 4030],
     videos: [
+      { link: "https://drive.google.com/file/d/1COhlEqI8esnH8X7Tv2gYsA1JfS4mMeqP/view?usp=drive_link", area: [29.69, 32.41, 54.33, 23.66], label: "" },
+      { link: "https://www.instagram.com/p/DfZSYIyArp6/", area: [22.58, 68.34, 16.17, 23.01], label: "" },
+      { link: "https://www.instagram.com/reel/DfNGT3QyhaC/?exln=NG9jYmk2YnprYWVn", area: [41.55, 68.47, 17.79, 21.82], label: "" },
+      { link: "https://www.instagram.com/p/DfR6sALTraT/", area: [59.33, 67.65, 18.09, 22.76], label: "" },
+      { link: "https://www.instagram.com/reel/DfUnLM-vuTb/", area: [78.38, 68.65, 16.18, 22.12], label: "" },
     ],
   },
 
