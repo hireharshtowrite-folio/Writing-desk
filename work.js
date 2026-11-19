@@ -55,6 +55,33 @@ window.WORK = [
 
   // ------------------------------------------------------------
   {
+    title: "Thoda Aur Brand Film - Mudrex",
+    image: "ThodaAur_Section_HQ.png",
+    size: [3840, 6103],
+    videos: [
+    ],
+  },
+
+  // ------------------------------------------------------------
+  {
+    title: "Tokenization Report front Page - Business standard",
+    image: "Print_Tokenization_Section_HQ.png",
+    size: [3840, 4823],
+    videos: [
+    ],
+  },
+
+  // ------------------------------------------------------------
+  {
+    title: "Soanpapdi Exchange | Mudrex Diwali 2026 Campaign",
+    image: "Soanpapdi_Section_HQ.png",
+    size: [3840, 4030],
+    videos: [
+    ],
+  },
+
+  // ------------------------------------------------------------
+  {
     title: "Independence Day campaign — Mudrex: the Biggest Breakout in Indian History. India’s map traces a breakout chart. Moneycontrol roadblock and interstitial, news and creator coverage; 39.03M impressions, 2x brand search impressions, 1M earned media",
     image: "independence-day.webp",
     size: [2200, 7530],
@@ -69,9 +96,9 @@ window.WORK = [
 
   // ------------------------------------------------------------
   {
-    title: "Orchids Teachers' Day campaign — hoardings in Tier 1 cities and newspaper jackets pan India",
-    image: "teachers-day.webp",
-    size: [1100, 1157],
+    title: "Orchids International School - Teacher's Day Campaign",
+    image: "teachers-day-campaign_updated.png",
+    size: [1984, 2087],
     videos: [
     ],
   },
@@ -181,6 +208,24 @@ window.WORK = [
     size: [1100, 754],
     videos: [
       { link: "https://drive.google.com/file/d/14PKv-wLD-0DfXfdkZRGTBdzC712RGV8Z/view", area: [5.55, 22.68, 41.73, 34.22], label: "Orchids admission enrolment kit" },
+    ],
+  },
+
+  // ------------------------------------------------------------
+  {
+    title: "5",
+    image: "Soanpapdi_Section_HQ.png",
+    size: [3840, 4030],
+    videos: [
+    ],
+  },
+
+  // ------------------------------------------------------------
+  {
+    title: "",
+    image: "Soanpapdi_Section_HQ.png",
+    size: [3840, 4030],
+    videos: [
     ],
   },
 
